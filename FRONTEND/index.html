@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Management System</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <nav class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🏥</div>
+                    <h1 class="text-white text-xl sm:text-2xl font-bold hidden sm:block">Patient Management System</h1>
+                    <h1 class="text-white text-lg sm:text-2xl font-bold sm:hidden">Patient Manager</h1>
+                </div>
+                <div class="text-white text-sm sm:text-base">
+                    <span id="patient-count" class="font-semibold">0</span> Patients
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- Action Buttons Section -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <button onclick="toggleAddPatientModal()"
+                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow-md transition-all text-sm sm:text-base">
+                ➕ Add Patient
+            </button>
+            <button onclick="toggleSearchModal()"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow-md transition-all text-sm sm:text-base">
+                🔍 Search
+            </button>
+            <button onclick="openSortModal()"
+                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow-md transition-all text-sm sm:text-base">
+                📊 Sort
+            </button>
+            <button onclick="loadAllPatients()"
+                class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow-md transition-all text-sm sm:text-base">
+                🔄 Refresh
+            </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="hidden text-center py-8">
+            <div class="inline-block animate-spin">
+                <div class="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+            <p class="text-gray-600 mt-2">Loading patients...</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alert-container"></div>
+
+        <!-- Patients Grid/Table Section -->
+        <div id="patients-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <p class="text-lg">📋 No patients found. Click "Add Patient" to get started!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== ADD/EDIT PATIENT MODAL ====== -->
+    <div id="add-patient-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
+            <div
+                class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 flex justify-between items-center sticky top-0">
+                <h2 class="text-white text-xl font-bold" id="modal-title">Add New Patient</h2>
+                <button onclick="toggleAddPatientModal()"
+                    class="text-white text-2xl hover:text-gray-200">&times;</button>
+            </div>
+
+            <form id="patient-form" class="p-6 space-y-4">
+                <!-- Patient ID -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Patient ID *</label>
+                    <input type="text" id="patient-id" placeholder="e.g., P001"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                    <small class="text-gray-500">e.g., P001, P002, etc.</small>
+                </div>
+
+                <!-- Patient Name -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Full Name *</label>
+                    <input type="text" id="patient-name" placeholder="John Doe"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                </div>
+
+                <!-- Age -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Age *</label>
+                    <input type="number" id="patient-age" placeholder="30" min="1" max="119"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                </div>
+
+                <!-- City -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">City *</label>
+                    <input type="text" id="patient-city" placeholder="New York"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Gender *</label>
+                    <select id="patient-gender"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Height -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Height (m) *</label>
+                    <input type="number" id="patient-height" placeholder="1.75" step="0.01" min="0.5" max="2.5"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                    <small class="text-gray-500">Height in meters (e.g., 1.75)</small>
+                </div>
+
+                <!-- Weight -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Weight (kg) *</label>
+                    <input type="number" id="patient-weight" placeholder="75" step="0.1" min="10" max="300"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                        required>
+                    <small class="text-gray-500">Weight in kilograms (e.g., 75)</small>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" id="submit-btn"
+                        class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                        Save Patient
+                    </button>
+                    <button type="button" onclick="toggleAddPatientModal()"
+                        class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== SEARCH MODAL ====== -->
+    <div id="search-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-white text-xl font-bold">Search Patient</h2>
+                <button onclick="toggleSearchModal()" class="text-white text-2xl hover:text-gray-200">&times;</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <!-- Search by ID -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Search by Patient ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="search-id-input" placeholder="Enter Patient ID (e.g., P001)"
+                            class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="searchPatientById()"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border-t-2 border-gray-200 my-4"></div>
+
+                <!-- Search by Name -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Search by Name</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="search-name-input" placeholder="Enter Patient Name"
+                            class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="searchPatientByName()"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="search-results" class="hidden bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto"></div>
+
+                <!-- Close Button -->
+                <button onclick="toggleSearchModal()"
+                    class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all mt-4">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== SORT MODAL ====== -->
+    <div id="sort-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-white text-xl font-bold">Sort Patients</h2>
+                <button onclick="closeSortModal()" class="text-white text-2xl hover:text-gray-200">&times;</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <!-- Sort By -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Sort By *</label>
+                    <select id="sort-by"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                        <option value="height">Height</option>
+                        <option value="weight">Weight</option>
+                        <option value="bmi">BMI</option>
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Sort Order *</label>
+                    <select id="sort-order"
+                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                        <option value="asc">Ascending ⬆️</option>
+                        <option value="desc">Descending ⬇️</option>
+                    </select>
+                </div>
+
+                <!-- Sort Button -->
+                <div class="flex gap-3 pt-4">
+                    <button onclick="sortPatients()"
+                        class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                        Sort
+                    </button>
+                    <button onclick="closeSortModal()"
+                        class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PATIENT DETAIL MODAL ====== -->
+    <div id="detail-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
+            <div
+                class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex justify-between items-center sticky top-0">
+                <h2 class="text-white text-xl font-bold">Patient Details</h2>
+                <button onclick="closeDetailModal()" class="text-white text-2xl hover:text-gray-200">&times;</button>
+            </div>
+
+            <div id="detail-content" class="p-6 space-y-4">
+                <!-- Details will be populated by JavaScript -->
+            </div>
+
+            <div class="bg-gray-100 px-6 py-4 flex gap-3 sticky bottom-0">
+                <button onclick="loadAllPatients(); closeDetailModal();"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== DELETE CONFIRMATION MODAL ====== -->
+    <div id="delete-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                <h2 class="text-white text-xl font-bold">⚠️ Delete Patient</h2>
+            </div>
+
+            <div class="p-6">
+                <p class="text-gray-700 mb-4">Are you sure you want to delete <strong
+                        id="delete-patient-name"></strong>?</p>
+                <p class="text-gray-500 text-sm">This action cannot be undone.</p>
+            </div>
+
+            <div class="bg-gray-100 px-6 py-4 flex gap-3">
+                <button onclick="confirmDelete()"
+                    class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                    Delete
+                </button>
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="main.js"></script>
+</body>
+
+</html>
